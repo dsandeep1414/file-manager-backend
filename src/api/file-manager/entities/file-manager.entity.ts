@@ -29,7 +29,7 @@ export class fileManager extends Model {
   id!: string;
 
   @Column
-  name!: string; 
+  name!: string;
 
   @Column
   bucketKey!: string;

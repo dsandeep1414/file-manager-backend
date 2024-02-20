@@ -1,21 +1,21 @@
-import { Injectable } from '@nestjs/common';
-// import { CreateFileManagerDto } from './dto/create-file-manager.dto';
-// import { UpdateFileManagerDto } from './dto/update-file-manager.dto';
+import { Inject, Injectable } from '@nestjs/common';
 import * as AWS from 'aws-sdk';
 import { ManagedUpload } from 'aws-sdk/lib/s3/managed_upload';
 import { Readable } from 'stream';
+import { fileManager } from './entities/file-manager.entity';
+import { returnError } from 'src/common/succes-handler/response-handler';
 
 @Injectable()
 export class FileManagerService {
     private readonly s3: AWS.S3;
     private readonly bucketName: string;
 
-    constructor() {
+    constructor(@Inject('FILEMANAGER') private fileRepo: typeof fileManager) {
         this.bucketName = 'rocketship-media';
         this.s3 = new AWS.S3({
-            accessKeyId: 'DO00VVHNNBFEHLHJWQWH',
-            secretAccessKey: '8rDJPkD9bcG0O6QmEfVn6fgth8xelo9OqH3IT4ttdn0',
-            endpoint: 'https://rocketship-bucket.nyc3.digitaloceanspaces.com',
+            accessKeyId: process.env.AWS_ACCESS_KEY,
+            secretAccessKey: process.env.AWS_ACCESS_SECRET_KEY,
+            endpoint: process.env.BUCKET_URL,
             s3ForcePathStyle: true,
         });
     }
@@ -61,12 +61,57 @@ export class FileManagerService {
         await this.s3.putObject(params).promise();
     }
 
+    async saveData(
+        name: string,
+        bucketKey: string,
+        rocketShipId: string,
+        type: string,
+        fileType: string,
+        parentId: string,
+        label: string,
+        channel: string,
+        isDeleted: string,
+        isFavorite: string,
+    ) {
+        const data = {
+            name,
+            bucketKey,
+            rocketShipId,
+            type,
+            fileType,
+            parentId,
+            label,
+            channel,
+            isDeleted,
+            isFavorite,
+        };
+        try {
+            const response: any = await this.fileRepo.create(data);
+            return response?.data;
+        } catch (error) {
+            console.log('error>>>>.', error);
+        }
+    }
 
-    async saveData(data:any){
-        // const params: AWS.S3.GetObjectRequest = {
-        //     Bucket: this.bucketName,
-        //     Key: key,
-        // };
-        // return await this.s3.getObject(params).promise();
+    async rename(
+        id: string,
+        name: string
+    ) {
+        try {
+            const response = await this.fileRepo.update(
+                {
+                    name: name,
+                },
+                {
+                    where: {
+                        id: id,
+                    },
+                },
+            );
+            if (response[0] === 0) throw returnError(true, "WRONG_RESULT");
+            return response;
+        } catch (err) {
+            return returnError(true, err.message);
+        }
     }
 }
