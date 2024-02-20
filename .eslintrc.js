@@ -5,7 +5,6 @@ module.exports = {
     tsconfigRootDir : __dirname, 
     sourceType: 'module',
   },
-  plugins: ['@typescript-eslint/eslint-plugin'],
   extends: [
     'plugin:@typescript-eslint/recommended',
     'plugin:prettier/recommended',
@@ -20,3 +19,4 @@ module.exports = {
     "react/prop-types": 0,
   },
 };
+

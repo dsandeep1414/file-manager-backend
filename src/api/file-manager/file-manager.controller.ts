@@ -141,8 +141,7 @@ export class FileManagerController {
         isDeleted,
         isFavorite,
       );
-      console.log('data', data);
-      // return successResponse('Folder created successfully', {folderName:folderName});
+      return successResponse('Folder created successfully', data);
     } catch (error) {
       return errorResponse('Failed to create folder', 400);
     }
@@ -151,18 +150,14 @@ export class FileManagerController {
   @Post('rename')
   async renameFolder(@Body() data: any) {
     try {
-      const {
-        id,
-        name
-      } = data;
-      const dataResponse = await this.fileManagerService.rename(
-        id,
-        name
+      const { id, name } = data;
+      const dataResponse = await this.fileManagerService.rename(id, name);
+      return successResponse(
+        'Folder or File renamed successfully',
+        dataResponse,
       );
-      console.log('data', data);
-      // return successResponse('Folder created successfully', {folderName:folderName});
     } catch (error) {
-      return errorResponse('Failed to create folder', 400);
+      return errorResponse('Failed to rename', 400);
     }
   }
 }
