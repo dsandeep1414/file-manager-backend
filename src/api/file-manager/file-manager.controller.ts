@@ -115,13 +115,13 @@ export class FileManagerController {
 	}
 
 	@Post('folders')
-	async createFolder(@Body('folderName') folderName: string) {
+	async createFolder(@Body() body: any) {
 		try {
+			const { currentDirectoryKey , folderName } = body;
 			if (!folderName) {
 				return errorResponse('Folder name not provided', 400);
 			}
-			const results = await this.fileManagerService.createFolder(folderName);
-
+			const results = await this.fileManagerService.createFolder(folderName,currentDirectoryKey);
 			return successResponse('Folder created successfully', {
 				results
 			});

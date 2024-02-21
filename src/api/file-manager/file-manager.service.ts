@@ -95,6 +95,20 @@ export class FileManagerService {
         return await this.s3.upload(params).promise();
     }
 
+    async createFolder(folderName: string, parentFolder?: string): Promise<{ key: string, putObjectOutput: AWS.S3.PutObjectOutput }> {
+        let folderKey = folderName + '/';
+        if (parentFolder) {
+            folderKey = parentFolder + '/' + folderKey;
+        }
+        const params: AWS.S3.PutObjectRequest = {
+            Bucket: this.bucketName,
+            Key: folderKey,
+            Body: '',
+        }; 
+        const putObjectOutput = await this.s3.putObject(params).promise();
+        return { key: folderKey, putObjectOutput };
+    }
+
     async deleteFile(key: string): Promise<void> {
         const params: AWS.S3.DeleteObjectRequest = {
             Bucket: this.bucketName,
@@ -118,14 +132,15 @@ export class FileManagerService {
         return await this.s3.getObject(params).promise();
     }
 
-    async createFolder(folderName: string): Promise<PutObjectOutput> {
+    /* async createFolder(folderName: string): Promise<PutObjectOutput> {
         const params: AWS.S3.PutObjectRequest = {
             Bucket: this.bucketName,
             Key: 'd41d8cd98f00b204e9800998ecf8427e'+folderName + '/',
             Body: '',
         }; 
         return await this.s3.putObject(params).promise();
-    }
+    }*/
+
 
     async saveData(
         name: string,
