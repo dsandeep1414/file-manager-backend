@@ -39,7 +39,7 @@ async function bootstrap() {
   ]);
 
   await app.startAllMicroservices();
-  const grpcServer = await NestFactory.createMicroservice(AppModule, {
+  /* const grpcServer = await NestFactory.createMicroservice(AppModule, {
     transport: Transport.RMQ,
     options: {
       urls: [process.env.RABBITMQ_URL],
@@ -47,7 +47,7 @@ async function bootstrap() {
       noAck: false,
       prefetchCount: 1,
     },
-  });
+  }); */
 
   app.use(helmet());
   app.enableCors();
@@ -64,7 +64,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   await app.listen(process.env.PORT);
-  await grpcServer.listen();
+  // await grpcServer.listen();
   console.log(`Server running on: http://localhost:${process.env.PORT}`);
 }
 bootstrap();
