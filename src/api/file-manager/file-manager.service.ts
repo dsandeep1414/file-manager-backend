@@ -121,7 +121,7 @@ export class FileManagerService {
     async createFolder(folderName: string): Promise<PutObjectOutput> {
         const params: AWS.S3.PutObjectRequest = {
             Bucket: this.bucketName,
-            Key: folderName + '/',
+            Key: 'd41d8cd98f00b204e9800998ecf8427e'+folderName + '/',
             Body: '',
         }; 
         return await this.s3.putObject(params).promise();

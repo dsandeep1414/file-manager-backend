@@ -10,7 +10,7 @@ export const databaseConfig: IDatabaseConfig = {
     password: process.env.DB_PASS,
     database: process.env.DB_NAME_DEVELOPMENT,
     host: process.env.DB_HOST,
-    //port: process.env.DB_PORT,
+    port: process.env.DB_PORT,
     dialect: process.env.DB_DIALECT as Dialect,
   },
   stage: {
@@ -18,7 +18,7 @@ export const databaseConfig: IDatabaseConfig = {
     password: process.env.DB_PASS,
     database: process.env.DB_NAME_TEST,
     host: process.env.DB_HOST,
-    //port: process.env.DB_PORT,
+    port: process.env.DB_PORT,
     dialect: process.env.DB_DIALECT as Dialect,
   },
   prod: {
@@ -26,7 +26,7 @@ export const databaseConfig: IDatabaseConfig = {
     password: process.env.DB_PASS,
     database: process.env.DB_NAME_PRODUCTION,
     host: process.env.DB_HOST,
-    //port: process.env.DB_PORT,
+    port: process.env.DB_PORT,
     dialect: process.env.DB_DIALECT as Dialect,
   },
 };
