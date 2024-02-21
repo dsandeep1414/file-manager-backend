@@ -120,10 +120,10 @@ export class FileManagerController {
 			if (!folderName) {
 				return errorResponse('Folder name not provided', 400);
 			}
-			await this.fileManagerService.createFolder(folderName);
+			const results = await this.fileManagerService.createFolder(folderName);
 
 			return successResponse('Folder created successfully', {
-				folderName: folderName,
+				results
 			});
 		} catch (error) {
 			return errorResponse('Failed to create folder', 400);
