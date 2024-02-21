@@ -4,6 +4,7 @@ import { ManagedUpload } from 'aws-sdk/lib/s3/managed_upload';
 import { Readable } from 'stream';
 import { fileManager } from './entities/file-manager.entity';
 import { returnError } from 'src/common/succes-handler/response-handler';
+import { PutObjectOutput } from 'aws-sdk/clients/s3';
 
 @Injectable()
 export class FileManagerService {
@@ -117,13 +118,13 @@ export class FileManagerService {
         return await this.s3.getObject(params).promise();
     }
 
-    async createFolder(folderName: string): Promise<void> {
+    async createFolder(folderName: string): Promise<PutObjectOutput> {
         const params: AWS.S3.PutObjectRequest = {
             Bucket: this.bucketName,
             Key: folderName + '/',
             Body: '',
-        };
-        await this.s3.putObject(params).promise();
+        }; 
+        return await this.s3.putObject(params).promise();
     }
 
     async saveData(

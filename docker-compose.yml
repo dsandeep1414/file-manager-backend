@@ -6,5 +6,5 @@ services:
       - '0.0.0.0:2020:2020'
     container_name: file_manager_service
     restart: always
-    image: file-manager
+    image: file_manager
     env_file: ./.env
