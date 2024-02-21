@@ -47,8 +47,8 @@ export class fileManager extends Model {
   @Column({
     type: DataType.ENUM,
     values: [
-      'image',
-      'video',
+      'file',
+      'folder',
       'audio',
       'document',
       'archive',

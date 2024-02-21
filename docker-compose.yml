@@ -1,0 +1,10 @@
+version: '3'
+services:
+  file_manager_service:
+    ports:
+      - '0.0.0.0:3006:3006'
+      - '0.0.0.0:2020:2020'
+    container_name: file_manager_service
+    restart: always
+    image: file-manager
+    env_file: ./.env
