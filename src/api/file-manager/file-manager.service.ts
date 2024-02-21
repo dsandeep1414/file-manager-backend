@@ -14,8 +14,8 @@ export class FileManagerService {
     constructor(@Inject('FILEMANAGER') private fileRepo: typeof fileManager) {
         this.bucketName = 'rocketship-media';
         this.s3 = new AWS.S3({
-            accessKeyId: process.env.AWS_ACCESS_KEY,
-            secretAccessKey: process.env.AWS_ACCESS_SECRET_KEY,
+            accessKeyId: process.env.DIGITALOCEAN_ACCESS_KEY,
+            secretAccessKey: process.env.DIGITALOCEAN_ACCESS_SECRET_KEY,
             endpoint: process.env.BUCKET_URL,
             s3ForcePathStyle: true,
         });
