@@ -179,7 +179,7 @@ export class FileManagerController {
 			if(!checkMediaExist?.count){
 				const dataResponse = await this.fileManagerService.saveData(
 					name,
-					rocketShipId,
+					bucketKey,
 					rocketShipId,
 					'folder',
 					'folder',

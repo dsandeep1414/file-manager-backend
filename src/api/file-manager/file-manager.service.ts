@@ -143,39 +143,40 @@ export class FileManagerService {
     }*/
 
 
-    async saveData(
-        name: string,
-        bucketKey: string,
-        rocketShipId: string,
-        type: string,
-        fileType: string,
-        parentId: string,
-        label: string,
-        channel: string,
-        isDeleted: string,
-        isFavorite: string,
-    ) {
-        const data = {
-            name,
-            bucketKey,
-            rocketShipId,
-            type,
-            fileType,
-            parentId,
-            label,
-            channel,
-            isDeleted,
-            isFavorite,
-        };
-        try {
-            console.log('data*****************', data);
-            const response: any = await this.fileRepo.create(data);
-            return response?.data;
-        } catch (err) {
-            console.log("err.message", err.message);
-            return returnError(true, err.message);
-        }
+   async saveData(
+    name: string,
+    bucketKey: string,
+    rocketShipId: string,
+    type: string,
+    fileType: string,
+    parentId: string,
+    label: string,
+    channel: string,
+    isDeleted: string,
+    isFavorite: string,
+) {
+    const data = {
+        name,
+        bucketKey,
+        rocketShipId,
+        type,
+        fileType,
+        parentId,
+        label,
+        channel,
+        isDeleted: isDeleted,
+        isFavorite: isFavorite ,
+    };
+    try {
+        console.log('data*****************', data);
+        const response: any = await this.fileRepo.create(data);
+        return response?.data;
+    } catch (err) {
+        console.log("err.message", err.message);
+        return returnError(true, err.message);
     }
+}
+
 
     async rename(id: string, name: string) {
         try {
@@ -223,7 +224,7 @@ export class FileManagerService {
             return returnError(true, err.message);
         }
     }
-    
+
 
     async checkMediaExist(rocketShipId: string) {
         try {
