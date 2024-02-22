@@ -96,7 +96,7 @@ export class FileManagerService {
     }
 
     async createFolder(folderName: string, parentFolder?: string): Promise<{ key: string, putObjectOutput: AWS.S3.PutObjectOutput }> {
-        let folderKey = folderName + '/';
+        let folderKey = parentFolder;
         if (parentFolder) {
             folderKey = parentFolder + '/' + folderKey;
         }
