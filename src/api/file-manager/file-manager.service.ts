@@ -21,32 +21,33 @@ export class FileManagerService {
         });
     }
 
-    async fileManagers() {
+    async fileManagers(id:string) {
         try {
             const allFiles = await this.fileRepo.findAll({
-                raw: true, 
+                raw: true,
                 order: [["name", "ASC"]],
-            });
-            const tree = this.buildTree(allFiles);
-            return tree;
+                where: {  parentId: id }, 
+            }); 
+            // const tree = this.buildTree(allFiles);
+            return allFiles;
         } catch (error) {
             console.log(error.message, "error");
             return returnError(true, error.message);
         }
     }
-    
+
     async buildTree(files) {
         const tree = [];
-    
+
         // Map to store references to nodes by their ID
         const nodeMap = {};
-    
+
         // Create a node for each file and store it in the node map
         files.forEach(file => {
             const node = { ...file, children: [] };
             nodeMap[file.id] = node;
         });
-    
+
         // Connect child nodes to their parent nodes
         files.forEach(file => {
             const parentId = file.parentId;
@@ -62,10 +63,10 @@ export class FileManagerService {
                 tree.push(nodeMap[file.id]);
             }
         });
-    
+
         return tree;
     }
-    
+
     /* async fileManagers() {
         try {
             const response: any = await this.fileRepo.findAll({
@@ -104,7 +105,7 @@ export class FileManagerService {
             Bucket: this.bucketName,
             Key: folderKey,
             Body: '',
-        }; 
+        };
         const putObjectOutput = await this.s3.putObject(params).promise();
         return { key: folderKey, putObjectOutput };
     }
@@ -143,39 +144,39 @@ export class FileManagerService {
     }*/
 
 
-   async saveData(
-    name: string,
-    bucketKey: string,
-    rocketShipId: string,
-    type: string,
-    fileType: string,
-    parentId: string,
-    label: string,
-    channel: string,
-    isDeleted: string,
-    isFavorite: string,
-) {
-    const data = {
-        name,
-        bucketKey,
-        rocketShipId,
-        type,
-        fileType,
-        parentId,
-        label,
-        channel,
-        isDeleted: isDeleted,
-        isFavorite: isFavorite ,
-    };
-    try {
-        console.log('data*****************', data);
-        const response: any = await this.fileRepo.create(data);
-        return response?.data;
-    } catch (err) {
-        console.log("err.message", err.message);
-        return returnError(true, err.message);
+    async saveData(
+        name: string,
+        bucketKey: string,
+        rocketShipId: string,
+        type: string,
+        fileType: string,
+        parentId: string,
+        label: string,
+        channel: string,
+        isDeleted: string,
+        isFavorite: string,
+    ) {
+        const data = {
+            name,
+            bucketKey,
+            rocketShipId,
+            type,
+            fileType,
+            parentId,
+            label,
+            channel,
+            isDeleted: isDeleted,
+            isFavorite: isFavorite,
+        };
+        try {
+            console.log('data*****************', data);
+            const response: any = await this.fileRepo.create(data);
+            return response?.data;
+        } catch (err) {
+            console.log("err.message", err.message);
+            return returnError(true, err.message);
+        }
     }
-}
 
 
     async rename(id: string, name: string) {
@@ -262,4 +263,18 @@ export class FileManagerService {
             return returnError(true, err.message);
         }
     }
+
+    async authenticate(id: string) {
+        try {
+            const response: any = await this.fileRepo.destroy(
+                { where: { id: id } },
+            );
+            if (response[0] === 0) throw returnError(true, 'WRONG_RESULT');
+            return response;
+        } catch (err) {
+            return returnError(true, err.message);
+        }
+    }
+
+    
 }

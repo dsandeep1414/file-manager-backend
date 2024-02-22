@@ -28,7 +28,17 @@ export class FileManagerController {
 	@Get('file-managers')
 	async fileManagers() {
 		try {
-			const fileManagerResponse:any = await this.fileManagerService.fileManagers();
+			const fileManagerResponse:any = await this.fileManagerService.fileManagers(null);
+			return successResponse('file fetched successfully', fileManagerResponse);
+		} catch (error) {
+			return errorResponse('Failed to list files', 400);
+		}
+	}
+
+	@Get('file-managers/:id')
+	async fileChild(@Param('id') id:string) {
+		try {
+			const fileManagerResponse:any = await this.fileManagerService.fileManagers(id);
 			return successResponse('file fetched successfully', fileManagerResponse);
 		} catch (error) {
 			return errorResponse('Failed to list files', 400);
@@ -237,6 +247,19 @@ export class FileManagerController {
 		const response = await this.fileManagerService.checkMediaExist(rocketShipId);
 		if(response?.count){
 
+		}
+		console.log("response",response?.count)
+	}
+
+	@Post('authenticate')
+	async authenticate(@Body() data:any){
+		const { token } = data;
+		if (!token) {
+			return errorResponse('token not provided', 400);
+		}
+		const response = await this.fileManagerService.authenticate(token);
+		if(response?.count){
+			
 		}
 		console.log("response",response?.count)
 	}
