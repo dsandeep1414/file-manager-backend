@@ -130,6 +130,27 @@ export class FileManagerController {
 		}
 	}
 
+	@Post('favorite')
+	async favoriteFolderOrFile(@Body() body: any) {
+		try {
+			const { key , folderName,id } = body;
+			if (!folderName) {
+				return errorResponse('Folder name not provided', 400);
+			}
+			if (!key) {
+				return errorResponse('Key not provided', 400);
+			}
+			const results = await this.fileManagerService.favoriteFolderOrFile(folderName,key,id);
+			return successResponse('Folder created successfully', {
+				results
+			});
+		} catch (error) {
+			return errorResponse('Failed to create folder', 400);
+		}
+	}
+
+	
+
 	@Post('save')
 	async saveData(@Body() data: any) {
 
@@ -157,7 +178,7 @@ export class FileManagerController {
 
 			if(!checkMediaExist?.count){
 				const dataResponse = await this.fileManagerService.saveData(
-					rocketShipId,
+					name,
 					rocketShipId,
 					rocketShipId,
 					'folder',

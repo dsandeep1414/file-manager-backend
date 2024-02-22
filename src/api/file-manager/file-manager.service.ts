@@ -109,6 +109,7 @@ export class FileManagerService {
         return { key: folderKey, putObjectOutput };
     }
 
+
     async deleteFile(key: string): Promise<void> {
         const params: AWS.S3.DeleteObjectRequest = {
             Bucket: this.bucketName,
@@ -194,6 +195,35 @@ export class FileManagerService {
             return returnError(true, err.message);
         }
     }
+
+
+    async favoriteFolderOrFile(folderName: string, key: string, id: string) {
+        try {
+            const file = await this.fileRepo.findOne({
+                where: {
+                    id: id,
+                },
+            });
+            const updatedIsFavorite = !file.isFavorite;
+            const response = await this.fileRepo.update(
+                {
+                    isFavorite: updatedIsFavorite,
+                },
+                {
+                    where: {
+                        id: id,
+                    },
+                },
+            );
+            if (response[0] === 0) {
+                throw returnError(true, 'WRONG_RESULT');
+            }
+            return response;
+        } catch (err) {
+            return returnError(true, err.message);
+        }
+    }
+    
 
     async checkMediaExist(rocketShipId: string) {
         try {
