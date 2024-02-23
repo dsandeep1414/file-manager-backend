@@ -21,14 +21,16 @@ import {
 
 @Controller('media')
 export class FileManagerController {
-	constructor(private readonly fileManagerService: FileManagerService) {
+	constructor(
+		private readonly fileManagerService: FileManagerService,
+	) {
 		const bucketName = 'rocketship-media';
 	}
 
 	@Get('file-managers')
 	async fileManagers() {
 		try {
-			const fileManagerResponse:any = await this.fileManagerService.fileManagers(null);
+			const fileManagerResponse: any = await this.fileManagerService.fileManagers(null);
 			return successResponse('file fetched successfully', fileManagerResponse);
 		} catch (error) {
 			return errorResponse('Failed to list files', 400);
@@ -41,7 +43,7 @@ export class FileManagerController {
 			if (!rocketShipId) {
 				return errorResponse('rocketShipId not provided', 400);
 			}
-			const fileManagerResponse:any = await this.fileManagerService.fileManagers(rocketShipId);
+			const fileManagerResponse: any = await this.fileManagerService.fileManagers(rocketShipId);
 			return successResponse('file fetched successfully', fileManagerResponse);
 		} catch (error) {
 			return errorResponse('Failed to list files', 400);
@@ -49,9 +51,9 @@ export class FileManagerController {
 	}
 
 	@Get('file-managers/:id')
-	async fileChild(@Param('id') id:string) {
+	async fileChild(@Param('id') id: string) {
 		try {
-			const fileManagerResponse:any = await this.fileManagerService.fileManagers(id);
+			const fileManagerResponse: any = await this.fileManagerService.fileManagers(id);
 			return successResponse('file fetched successfully', fileManagerResponse);
 		} catch (error) {
 			return errorResponse('Failed to list files', 400);
@@ -75,9 +77,9 @@ export class FileManagerController {
 			const { rocketshipId, currentFolderKey } = body;
 			let currentFolder = '';
 			if (currentFolderKey != '.') {
-				currentFolder = rocketshipId+'/'+currentFolderKey + '/';
-			}else{
-				currentFolder = rocketshipId+'/';
+				currentFolder = rocketshipId + '/' + currentFolderKey + '/';
+			} else {
+				currentFolder = rocketshipId + '/';
 			}
 			if (!files || files.length === 0) {
 				return errorResponse('No files uploaded', 400);
@@ -86,7 +88,7 @@ export class FileManagerController {
 			const uploadResults = await Promise.all(
 				files.map(async (file) => {
 					const key = `${currentFolder}${file.originalname}`;
-					console.log("key",key)
+					console.log("key", key)
 					const result = await this.fileManagerService.uploadFile(file, key);
 					return result;
 				}),
@@ -140,11 +142,11 @@ export class FileManagerController {
 	@Post('folders')
 	async createFolder(@Body() body: any) {
 		try {
-			const { currentDirectoryKey , folderName } = body;
+			const { currentDirectoryKey, folderName } = body;
 			if (!folderName) {
 				return errorResponse('Folder name not provided', 400);
 			}
-			const results = await this.fileManagerService.createFolder(folderName,currentDirectoryKey);
+			const results = await this.fileManagerService.createFolder(folderName, currentDirectoryKey);
 			return successResponse('Folder created successfully', {
 				results
 			});
@@ -156,7 +158,7 @@ export class FileManagerController {
 	@Post('favorite')
 	async favoriteFolderOrFile(@Body() body: any) {
 		try {
-			const { id , rocketShipId} = body; 
+			const { id, rocketShipId } = body;
 			if (!id) {
 				return errorResponse('Key not provided', 400);
 			}
@@ -167,11 +169,11 @@ export class FileManagerController {
 		} catch (error) {
 			return errorResponse('Failed to create folder', 400);
 		}
-	} 
+	}
 
 	@Post('save')
 	async saveData(@Body() data: any) {
-		try { 
+		try {
 			const {
 				name,
 				bucketKey,
@@ -183,10 +185,10 @@ export class FileManagerController {
 				channel,
 				isDeleted,
 				isFavorite,
-			} = data; 
-			const checkMediaExist:any = await this.fileManagerService.checkMediaExist(rocketShipId);
+			} = data;
+			const checkMediaExist: any = await this.fileManagerService.checkMediaExist(rocketShipId);
 			let parentKey: string;
-			if(!checkMediaExist?.count){
+			if (!checkMediaExist?.count) {
 				const dataResponse = await this.fileManagerService.saveData(
 					name,
 					bucketKey,
@@ -199,9 +201,9 @@ export class FileManagerController {
 					'false',
 					'false',
 				);
-				console.log("dataResponse++++++++",dataResponse);
+				console.log("dataResponse++++++++", dataResponse);
 				parentKey = dataResponse?.id
-			}else{
+			} else {
 				parentKey = parentId;
 			}
 			const dataResponse = await this.fileManagerService.saveData(
@@ -238,25 +240,29 @@ export class FileManagerController {
 
 
 	@Post('check')
-	async check(@Body() data:any){
-		const {  rocketShipId } = data;
+	async check(@Body() data: any) {
+		const { rocketShipId } = data;
 		const response = await this.fileManagerService.checkMediaExist(rocketShipId);
-		if(response?.count){
+		if (response?.count) {
 
 		}
-		console.log("response",response?.count)
+		console.log("response", response?.count)
 	}
 
 	@Post('authenticate')
-	async authenticate(@Body() data:any){
-		const { token } = data;
-		if (!token) {
-			return errorResponse('token not provided', 400);
+	async authenticate(@Body() data: any) {
+		try {
+			const { token } = data;
+			if (!token) {
+				return errorResponse('token not provided', 400);
+			}
+			const response = await this.fileManagerService.authenticate(token);
+			return successResponse(
+				'User Logged In successfully!',
+				response,
+			);
+		} catch (error) {
+			return errorResponse('Failed to rename', 400);
 		}
-		const response = await this.fileManagerService.authenticate(token);
-		if(response?.count){
-			
-		}
-		console.log("response",response?.count)
 	}
 }

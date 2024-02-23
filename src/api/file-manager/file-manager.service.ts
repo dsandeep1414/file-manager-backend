@@ -5,11 +5,14 @@ import { Readable } from 'stream';
 import { fileManager } from './entities/file-manager.entity';
 import { returnError } from 'src/common/succes-handler/response-handler';
 import { PutObjectOutput } from 'aws-sdk/clients/s3';
+import { HttpService } from '@nestjs/axios';
+import axios from 'axios';
 
 @Injectable()
 export class FileManagerService {
     private readonly s3: AWS.S3;
     private readonly bucketName: string;
+    private readonly http: HttpService;
 
     constructor(@Inject('FILEMANAGER') private fileRepo: typeof fileManager) {
         this.bucketName = 'rocketship-media';
@@ -21,35 +24,21 @@ export class FileManagerService {
         });
     }
 
-    async fileManagers(id:string) {
+    async fileManagers(id: string) {
         try {
             const allFiles = await this.fileRepo.findAll({
                 raw: true,
-                order: [["name", "ASC"]],
-                where: {  parentId: id }, 
-            }); 
-            // const tree = this.buildTree(allFiles);
-            return allFiles;
+                order: [['name', 'ASC']],
+                // where: {  parentId: id },
+            });
+            const tree = this.buildTree(allFiles);
+            return tree;
+            // return allFiles;
         } catch (error) {
-            console.log(error.message, "error");
+            console.log(error.message, 'error');
             return returnError(true, error.message);
         }
     }
-
-    async favoriteFiles(rocketShipId:string) {
-        try {
-            const allFiles = await this.fileRepo.findAll({
-                raw: true,
-                order: [["name", "ASC"]],
-                where: {  isFavorite: "true" , rocketShipId:rocketShipId}, 
-            }); 
-            return allFiles;
-        } catch (error) {
-            console.log(error.message, "error");
-            return returnError(true, error.message);
-        }
-    }
-
 
     async buildTree(files) {
         const tree = [];
@@ -58,13 +47,13 @@ export class FileManagerService {
         const nodeMap = {};
 
         // Create a node for each file and store it in the node map
-        files.forEach(file => {
+        files.forEach((file) => {
             const node = { ...file, children: [] };
             nodeMap[file.id] = node;
         });
 
         // Connect child nodes to their parent nodes
-        files.forEach(file => {
+        files.forEach((file) => {
             const parentId = file.parentId;
             if (parentId) {
                 const parentNode = nodeMap[parentId];
@@ -82,25 +71,39 @@ export class FileManagerService {
         return tree;
     }
 
-    /* async fileManagers() {
+    async favoriteFiles(rocketShipId: string) {
         try {
-            const response: any = await this.fileRepo.findAll({
-                attributes: ["*"],
-                order: [
-                    ["name", "ASC"],
-                ],
+            const allFiles = await this.fileRepo.findAll({
+                raw: true,
+                order: [['name', 'ASC']],
+                where: { isFavorite: 'true', rocketShipId: rocketShipId },
             });
-            const count = await this.fileRepo.count();
-            const data = {
-                rows: response,
-                count,
-            };
-            return data;
+            return allFiles;
         } catch (error) {
-            console.log(error.message, "error");
+            console.log(error.message, 'error');
             return returnError(true, error.message);
         }
-    }*/
+    }
+
+    /* async fileManagers() {
+          try {
+              const response: any = await this.fileRepo.findAll({
+                  attributes: ["*"],
+                  order: [
+                      ["name", "ASC"],
+                  ],
+              });
+              const count = await this.fileRepo.count();
+              const data = {
+                  rows: response,
+                  count,
+              };
+              return data;
+          } catch (error) {
+              console.log(error.message, "error");
+              return returnError(true, error.message);
+          }
+      }*/
 
     async uploadFile(file: any, key: string): Promise<ManagedUpload.SendData> {
         const params: AWS.S3.PutObjectRequest = {
@@ -111,7 +114,10 @@ export class FileManagerService {
         return await this.s3.upload(params).promise();
     }
 
-    async createFolder(folderName: string, parentFolder?: string): Promise<{ key: string, putObjectOutput: AWS.S3.PutObjectOutput }> {
+    async createFolder(
+        folderName: string,
+        parentFolder?: string,
+    ): Promise<{ key: string; putObjectOutput: AWS.S3.PutObjectOutput }> {
         let folderKey = parentFolder;
         // if (parentFolder) {
         //     folderKey = parentFolder + '/' + folderKey;
@@ -124,7 +130,6 @@ export class FileManagerService {
         const putObjectOutput = await this.s3.putObject(params).promise();
         return { key: folderKey, putObjectOutput };
     }
-
 
     async deleteFile(key: string): Promise<void> {
         const params: AWS.S3.DeleteObjectRequest = {
@@ -150,14 +155,13 @@ export class FileManagerService {
     }
 
     /* async createFolder(folderName: string): Promise<PutObjectOutput> {
-        const params: AWS.S3.PutObjectRequest = {
-            Bucket: this.bucketName,
-            Key: 'd41d8cd98f00b204e9800998ecf8427e'+folderName + '/',
-            Body: '',
-        }; 
-        return await this.s3.putObject(params).promise();
-    }*/
-
+          const params: AWS.S3.PutObjectRequest = {
+              Bucket: this.bucketName,
+              Key: 'd41d8cd98f00b204e9800998ecf8427e'+folderName + '/',
+              Body: '',
+          }; 
+          return await this.s3.putObject(params).promise();
+      }*/
 
     async saveData(
         name: string,
@@ -188,11 +192,10 @@ export class FileManagerService {
             const response: any = await this.fileRepo.create(data);
             return response?.data;
         } catch (err) {
-            console.log("err.message", err.message);
+            console.log('err.message', err.message);
             return returnError(true, err.message);
         }
     }
-
 
     async rename(id: string, name: string) {
         try {
@@ -213,13 +216,12 @@ export class FileManagerService {
         }
     }
 
-
-    async favoriteFolderOrFile(rocketShipId:string, id: string) {
+    async favoriteFolderOrFile(rocketShipId: string, id: string) {
         try {
             let file = await this.fileRepo.findOne({
                 where: {
                     id: id,
-                    rocketShipId:rocketShipId
+                    rocketShipId: rocketShipId,
                 },
             });
             const updatedIsFavorite = Boolean(!file.isFavorite);
@@ -230,7 +232,7 @@ export class FileManagerService {
                 {
                     where: {
                         id: id,
-                        rocketShipId:rocketShipId
+                        rocketShipId: rocketShipId,
                     },
                 },
             );
@@ -243,12 +245,11 @@ export class FileManagerService {
         }
     }
 
-
     async checkMediaExist(rocketShipId: string) {
         try {
-            const response: any = await this.fileRepo.findAndCountAll(
-                { where: { rocketShipId: rocketShipId } },
-            );
+            const response: any = await this.fileRepo.findAndCountAll({
+                where: { rocketShipId: rocketShipId },
+            });
             if (response[0] === 0) throw returnError(true, 'WRONG_RESULT');
             return response;
         } catch (err) {
@@ -271,9 +272,7 @@ export class FileManagerService {
 
     async delete(id: string) {
         try {
-            const response: any = await this.fileRepo.destroy(
-                { where: { id: id } },
-            );
+            const response: any = await this.fileRepo.destroy({ where: { id: id } });
             if (response[0] === 0) throw returnError(true, 'WRONG_RESULT');
             return response;
         } catch (err) {
@@ -281,17 +280,14 @@ export class FileManagerService {
         }
     }
 
-    async authenticate(id: string) {
+    async authenticate(token: string) {
         try {
-            const response: any = await this.fileRepo.destroy(
-                { where: { id: id } },
-            );
-            if (response[0] === 0) throw returnError(true, 'WRONG_RESULT');
-            return response;
+            const baseUrl: string = 'https://api.github.com/repos/octocat/Spoon-Knife/issues';
+            // const response = await axios.post(baseUrl, {'token':token});
+            const response = await axios.get(baseUrl);
+            return response.data;
         } catch (err) {
             return returnError(true, err.message);
         }
     }
-
-    
 }
