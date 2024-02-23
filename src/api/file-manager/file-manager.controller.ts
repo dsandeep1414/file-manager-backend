@@ -257,6 +257,9 @@ export class FileManagerController {
 				return errorResponse('token not provided', 400);
 			}
 			const response = await this.fileManagerService.authenticate(token);
+			if(response == null){
+				return errorResponse('Failed to retrieved!', 400);
+			}
 			return successResponse(
 				'User Logged In successfully!',
 				response,
@@ -270,6 +273,7 @@ export class FileManagerController {
 	async getRocketships(@Param() data: any) {
 		try { 
 			const response = await this.fileManagerService.getRocketships();
+			
 			return successResponse(
 				'Rocketships retrieved successfully!',
 				response,

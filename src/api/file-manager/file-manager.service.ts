@@ -282,7 +282,7 @@ export class FileManagerService {
 
     async authenticate(token: string) {
         try {
-            const baseUrl: string = 'https://api.github.com/repos/octocat/Spoon-Knife/issues';
+            const baseUrl: string = 'https://admin.flyrocketship.com/authenticate';
             const response = await axios.post(baseUrl, {'token':token});
             return response.data;
         } catch (err) {
@@ -292,9 +292,9 @@ export class FileManagerService {
 
     async getRocketships() {
         try {
-            const baseUrl: string = 'https://api.github.com/repos/octocat/Spoon-Knife/issues';
+            const baseUrl: string = 'https://admin.flyrocketship.com/rocketships';
             const response = await axios.get(baseUrl);
-            return response.data;
+            return response.data.data;
         } catch (err) {
             return returnError(true, err.message);
         }

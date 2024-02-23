@@ -63,8 +63,13 @@ export class fileManager extends Model {
 
   @Column
   parentId!: string;
-
-  @Column
+ 
+  @Column({
+    type: DataType.ENUM,
+    values: ['SEO', 'Local SEO'],
+    defaultValue: "false",
+    allowNull: false,
+  })
   label!: string;
 
   @Column
