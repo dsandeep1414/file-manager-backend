@@ -265,4 +265,17 @@ export class FileManagerController {
 			return errorResponse('Failed to rename', 400);
 		}
 	}
+
+	@Get('get-rocketships')
+	async getRocketships(@Param() data: any) {
+		try { 
+			const response = await this.fileManagerService.getRocketships();
+			return successResponse(
+				'Rocketships retrieved successfully!',
+				response,
+			);
+		} catch (error) {
+			return errorResponse('Failed to retrieved!', 400);
+		}
+	}
 }
