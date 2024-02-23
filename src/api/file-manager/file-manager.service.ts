@@ -31,9 +31,9 @@ export class FileManagerService {
                 order: [['name', 'ASC']],
                 // where: {  parentId: id },
             });
-            const tree = this.buildTree(allFiles);
-            return tree;
-            // return allFiles;
+            // const tree = this.buildTree(allFiles);
+            // return tree;
+            return allFiles;
         } catch (error) {
             console.log(error.message, 'error');
             return returnError(true, error.message);
