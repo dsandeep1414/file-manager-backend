@@ -35,6 +35,19 @@ export class FileManagerController {
 		}
 	}
 
+	@Get('favorite/:rocketShipId')
+	async favoriteFiles(@Param('rocketShipId') rocketShipId: string) {
+		try {
+			if (!rocketShipId) {
+				return errorResponse('rocketShipId not provided', 400);
+			}
+			const fileManagerResponse:any = await this.fileManagerService.fileManagers(rocketShipId);
+			return successResponse('file fetched successfully', fileManagerResponse);
+		} catch (error) {
+			return errorResponse('Failed to list files', 400);
+		}
+	}
+
 	@Get('file-managers/:id')
 	async fileChild(@Param('id') id:string) {
 		try {
@@ -143,29 +156,21 @@ export class FileManagerController {
 	@Post('favorite')
 	async favoriteFolderOrFile(@Body() body: any) {
 		try {
-			const { key , folderName,id } = body;
-			if (!folderName) {
-				return errorResponse('Folder name not provided', 400);
-			}
-			if (!key) {
+			const { id , rocketShipId} = body; 
+			if (!id) {
 				return errorResponse('Key not provided', 400);
 			}
-			const results = await this.fileManagerService.favoriteFolderOrFile(folderName,key,id);
+			const results = await this.fileManagerService.favoriteFolderOrFile(rocketShipId, id);
 			return successResponse('Folder created successfully', {
 				results
 			});
 		} catch (error) {
 			return errorResponse('Failed to create folder', 400);
 		}
-	}
-
-	
+	} 
 
 	@Post('save')
 	async saveData(@Body() data: any) {
-
-		console.log("data---> ",data);
-
 		try { 
 			const {
 				name,
@@ -179,13 +184,8 @@ export class FileManagerController {
 				isDeleted,
 				isFavorite,
 			} = data; 
-
 			const checkMediaExist:any = await this.fileManagerService.checkMediaExist(rocketShipId);
-			
 			let parentKey: string;
-
-			// console.log("checkMediaExist=======> ", checkMediaExist?.count, !checkMediaExist?.count);
-
 			if(!checkMediaExist?.count){
 				const dataResponse = await this.fileManagerService.saveData(
 					name,
@@ -204,9 +204,6 @@ export class FileManagerController {
 			}else{
 				parentKey = parentId;
 			}
-			
-			console.log("parentKey----------",parentKey);
-			
 			const dataResponse = await this.fileManagerService.saveData(
 				name,
 				bucketKey,
@@ -219,7 +216,6 @@ export class FileManagerController {
 				isDeleted,
 				isFavorite,
 			);
-
 			return successResponse('Data saved successfully.', dataResponse);
 		} catch (error) {
 			return errorResponse('Failed to save data.', 400);

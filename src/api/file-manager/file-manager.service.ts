@@ -36,6 +36,21 @@ export class FileManagerService {
         }
     }
 
+    async favoriteFiles(rocketShipId:string) {
+        try {
+            const allFiles = await this.fileRepo.findAll({
+                raw: true,
+                order: [["name", "ASC"]],
+                where: {  isFavorite: "true" , rocketShipId:rocketShipId}, 
+            }); 
+            return allFiles;
+        } catch (error) {
+            console.log(error.message, "error");
+            return returnError(true, error.message);
+        }
+    }
+
+
     async buildTree(files) {
         const tree = [];
 
@@ -199,21 +214,23 @@ export class FileManagerService {
     }
 
 
-    async favoriteFolderOrFile(folderName: string, key: string, id: string) {
+    async favoriteFolderOrFile(rocketShipId:string, id: string) {
         try {
-            const file = await this.fileRepo.findOne({
+            let file = await this.fileRepo.findOne({
                 where: {
                     id: id,
+                    rocketShipId:rocketShipId
                 },
             });
-            const updatedIsFavorite = !file.isFavorite;
+            const updatedIsFavorite = Boolean(!file.isFavorite);
             const response = await this.fileRepo.update(
                 {
-                    isFavorite: updatedIsFavorite,
+                    isFavorite: updatedIsFavorite.toString(),
                 },
                 {
                     where: {
                         id: id,
+                        rocketShipId:rocketShipId
                     },
                 },
             );

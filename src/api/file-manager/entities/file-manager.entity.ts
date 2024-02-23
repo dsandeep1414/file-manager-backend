@@ -72,15 +72,18 @@ export class fileManager extends Model {
 
   @Column({
     type: DataType.ENUM(...Object.values(IsActive)),
+    defaultValue: "false",
     allowNull: true,
   })
   isDeleted!: IsActive;
 
   @Column({
     type: DataType.ENUM(...Object.values(isFavorite)),
+    defaultValue: "false",
     allowNull: true,
   })
   isFavorite!: isFavorite;
+
 
   @Default(DataType.NOW)
   @Column({
@@ -88,6 +91,7 @@ export class fileManager extends Model {
     field: 'createdAt',
   })
   createdAt!: Date;
+
 
   @Default(DataType.NOW)
   @Column({
