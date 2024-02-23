@@ -29,7 +29,7 @@ export class FileManagerService {
             const allFiles = await this.fileRepo.findAll({
                 raw: true,
                 order: [['name', 'ASC']],
-                // where: {  parentId: id },
+                where: {  parentId: id },
             });
             // const tree = this.buildTree(allFiles);
             // return tree;
