@@ -284,7 +284,7 @@ export class FileManagerService {
         try {
             const baseUrl: string = 'https://admin.flyrocketship.com/authenticate';
             const response = await axios.post(baseUrl, {'token':token});
-            return response.data;
+            return response.data.data;
         } catch (err) {
             return returnError(true, err.message);
         }
