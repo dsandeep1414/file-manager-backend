@@ -293,7 +293,7 @@ export class FileManagerController {
 			return successResponse('Rocketships retrieved successfully!', {
 				file: response,
 			});
-		} catch (error) {
+		} catch (error) { 
 			return errorResponse('Failed to retrieved!', 400);
 		}
 	}
