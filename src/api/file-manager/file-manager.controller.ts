@@ -21,16 +21,15 @@ import {
 
 @Controller('media')
 export class FileManagerController {
-	constructor(
-		private readonly fileManagerService: FileManagerService,
-	) {
+	constructor(private readonly fileManagerService: FileManagerService) {
 		const bucketName = 'rocketship-media';
 	}
 
 	@Get('file-managers')
 	async fileManagers() {
 		try {
-			const fileManagerResponse: any = await this.fileManagerService.fileManagers(null);
+			const fileManagerResponse: any =
+				await this.fileManagerService.fileManagers(null);
 			return successResponse('file fetched successfully', fileManagerResponse);
 		} catch (error) {
 			return errorResponse('Failed to list files', 400);
@@ -43,7 +42,8 @@ export class FileManagerController {
 			if (!rocketShipId) {
 				return errorResponse('rocketShipId not provided', 400);
 			}
-			const fileManagerResponse: any = await this.fileManagerService.fileManagers(rocketShipId);
+			const fileManagerResponse: any =
+				await this.fileManagerService.fileManagers(rocketShipId);
 			return successResponse('file fetched successfully', fileManagerResponse);
 		} catch (error) {
 			return errorResponse('Failed to list files', 400);
@@ -53,7 +53,8 @@ export class FileManagerController {
 	@Get('file-managers/:id')
 	async fileChild(@Param('id') id: string) {
 		try {
-			const fileManagerResponse: any = await this.fileManagerService.fileManagers(id);
+			const fileManagerResponse: any =
+				await this.fileManagerService.fileManagers(id);
 			return successResponse('file fetched successfully', fileManagerResponse);
 		} catch (error) {
 			return errorResponse('Failed to list files', 400);
@@ -88,12 +89,12 @@ export class FileManagerController {
 			const uploadResults = await Promise.all(
 				files.map(async (file) => {
 					const key = `${currentFolder}${file.originalname}`;
-					console.log("key", key)
+					console.log('key', key);
 					const result = await this.fileManagerService.uploadFile(file, key);
 					return result;
 				}),
 			);
-			console.log("uploadResults", uploadResults)
+			console.log('uploadResults', uploadResults);
 			return successResponse('Files uploaded successfully', uploadResults);
 		} catch (error) {
 			return errorResponse('File upload failed', 400);
@@ -101,19 +102,19 @@ export class FileManagerController {
 	}
 
 	/* @Post('upload')
-	  @UseInterceptors(FileInterceptor('file'))
-	  async uploadFile(@UploadedFile() file: any) {
-		try {
-		  if (!file) {
-			return errorResponse('No file uploaded', 400);
+		@UseInterceptors(FileInterceptor('file'))
+		async uploadFile(@UploadedFile() file: any) {
+		  try {
+			if (!file) {
+			  return errorResponse('No file uploaded', 400);
+			}
+			const key = `${file.originalname}`;
+			const result = await this.fileManagerService.uploadFile(file, key);
+			return successResponse('file upload successfully', result);
+		  } catch (error) {
+			return errorResponse('File upload failed', 400);
 		  }
-		  const key = `${file.originalname}`;
-		  const result = await this.fileManagerService.uploadFile(file, key);
-		  return successResponse('file upload successfully', result);
-		} catch (error) {
-		  return errorResponse('File upload failed', 400);
-		}
-	  }*/
+		}*/
 
 	@Post('delete')
 	async deleteFile(@Body() body: any) {
@@ -146,9 +147,12 @@ export class FileManagerController {
 			if (!folderName) {
 				return errorResponse('Folder name not provided', 400);
 			}
-			const results = await this.fileManagerService.createFolder(folderName, currentDirectoryKey);
+			const results = await this.fileManagerService.createFolder(
+				folderName,
+				currentDirectoryKey,
+			);
 			return successResponse('Folder created successfully', {
-				results
+				results,
 			});
 		} catch (error) {
 			return errorResponse('Failed to create folder', 400);
@@ -162,9 +166,12 @@ export class FileManagerController {
 			if (!id) {
 				return errorResponse('Key not provided', 400);
 			}
-			const results = await this.fileManagerService.favoriteFolderOrFile(rocketShipId, id);
+			const results = await this.fileManagerService.favoriteFolderOrFile(
+				rocketShipId,
+				id,
+			);
 			return successResponse('Folder created successfully', {
-				results
+				results,
 			});
 		} catch (error) {
 			return errorResponse('Failed to create folder', 400);
@@ -186,7 +193,8 @@ export class FileManagerController {
 				isDeleted,
 				isFavorite,
 			} = data;
-			const checkMediaExist: any = await this.fileManagerService.checkMediaExist(rocketShipId);
+			const checkMediaExist: any =
+				await this.fileManagerService.checkMediaExist(rocketShipId);
 			let parentKey: string;
 			if (!checkMediaExist?.count) {
 				const dataResponse = await this.fileManagerService.saveData(
@@ -201,8 +209,8 @@ export class FileManagerController {
 					'false',
 					'false',
 				);
-				console.log("dataResponse++++++++", dataResponse);
-				parentKey = dataResponse?.id
+				console.log('dataResponse++++++++', dataResponse);
+				parentKey = dataResponse?.id;
 			} else {
 				parentKey = parentId;
 			}
@@ -238,15 +246,15 @@ export class FileManagerController {
 		}
 	}
 
-
 	@Post('check')
 	async check(@Body() data: any) {
 		const { rocketShipId } = data;
-		const response = await this.fileManagerService.checkMediaExist(rocketShipId);
+		const response = await this.fileManagerService.checkMediaExist(
+			rocketShipId,
+		);
 		if (response?.count) {
-
 		}
-		console.log("response", response?.count)
+		console.log('response', response?.count);
 	}
 
 	@Post('authenticate')
@@ -257,13 +265,10 @@ export class FileManagerController {
 				return errorResponse('token not provided', 400);
 			}
 			const response = await this.fileManagerService.authenticate(token);
-			if(response == null){
+			if (response == null) {
 				return errorResponse('Failed to retrieved!', 400);
 			}
-			return successResponse(
-				'User Logged In successfully!',
-				response,
-			);
+			return successResponse('User Logged In successfully!', response);
 		} catch (error) {
 			return errorResponse('Failed to rename', 400);
 		}
@@ -271,13 +276,23 @@ export class FileManagerController {
 
 	@Get('get-rocketships')
 	async getRocketships(@Param() data: any) {
-		try { 
+		try {
 			const response = await this.fileManagerService.getRocketships();
-			
-			return successResponse(
-				'Rocketships retrieved successfully!',
-				response,
-			);
+
+			return successResponse('Rocketships retrieved successfully!', response);
+		} catch (error) {
+			return errorResponse('Failed to retrieved!', 400);
+		}
+	}
+
+	@Post('download')
+	async downloadFile(@Body() data: any) {
+		try {
+			const { id } = data;
+			const response = await this.fileManagerService.downloadFile(id);
+			return successResponse('Rocketships retrieved successfully!', {
+				file: response,
+			});
 		} catch (error) {
 			return errorResponse('Failed to retrieved!', 400);
 		}

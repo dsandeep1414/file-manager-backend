@@ -66,15 +66,15 @@ export class fileManager extends Model {
  
   @Column({
     type: DataType.ENUM,
-    values: ['SEO', 'Local SEO'],
-    defaultValue: "false",
+    values: ['DEFAULT','SEO', 'Local SEO'],
+    defaultValue: "DEFAULT",
     allowNull: false,
   })
   label!: string;
 
   @Column
   channel!: string;
-
+ 
   @Column({
     type: DataType.ENUM(...Object.values(IsActive)),
     defaultValue: "false",

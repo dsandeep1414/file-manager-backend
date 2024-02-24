@@ -146,14 +146,6 @@ export class FileManagerService {
         return await this.s3.listObjectsV2(params).promise();
     }
 
-    async getFile(key: string): Promise<AWS.S3.GetObjectOutput> {
-        const params: AWS.S3.GetObjectRequest = {
-            Bucket: this.bucketName,
-            Key: key,
-        };
-        return await this.s3.getObject(params).promise();
-    }
-
     /* async createFolder(folderName: string): Promise<PutObjectOutput> {
           const params: AWS.S3.PutObjectRequest = {
               Bucket: this.bucketName,
@@ -295,6 +287,55 @@ export class FileManagerService {
             const baseUrl: string = 'https://admin.flyrocketship.com/rocketships';
             const response = await axios.get(baseUrl);
             return response.data.data;
+        } catch (err) {
+            return returnError(true, err.message);
+        }
+    }
+
+
+    async getFile(key: string): Promise<AWS.S3.GetObjectOutput> {
+        const params: AWS.S3.GetObjectRequest = {
+            Bucket: this.bucketName,
+            Key: key,
+        };
+        console.log("params=========",params);
+        return await this.s3.getObject(params).promise();
+    }
+
+
+    async getFileURLAndSetReadPermission(key: string): Promise<string> {
+        const params: AWS.S3.GetObjectRequest = {
+            Bucket: this.bucketName,
+            Key: key,
+        };
+        try {
+            const getObjectOutput = await this.s3.getObject(params).promise();
+            await this.s3.putObjectAcl({
+                Bucket: this.bucketName,
+                Key: key,
+                ACL: 'public-read',
+            }).promise();
+            const fileURL = this.s3.getSignedUrl('getObject', {
+                Bucket: this.bucketName,
+                Key: key,
+                Expires: 3600,  
+            });
+            return fileURL;
+        } catch (error) {
+            console.error('Error retrieving file or setting permissions:', error);
+            throw error;  
+        }
+    }
+
+    async downloadFile(id:any) {
+        try {
+            let file = await this.fileRepo.findOne({
+                where: {
+                    id: id
+                },
+            });
+            const mediaData = await this.getFileURLAndSetReadPermission(file.bucketKey)
+            return mediaData;
         } catch (err) {
             return returnError(true, err.message);
         }
