@@ -289,9 +289,10 @@ export class FileManagerController {
 		}
 	}
 
-	@Get('get-rocketships')
+	@Post('rocketships')
 	async getRocketships(@Param() data: any) {
 		try {
+			console.log("Asdfasfdasdf");
 			const response = await this.fileManagerService.getRocketships();          
 
 			return successResponse('Rocketships retrieved successfully!', response);
