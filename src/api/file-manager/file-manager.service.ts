@@ -40,6 +40,23 @@ export class FileManagerService {
         }
     }
 
+
+    async getMedia(id: string) {
+        try {
+            const allFiles = await this.fileRepo.findAll({
+                raw: true,
+                order: [['name', 'ASC']],
+                where: {  rocketShipId: id },
+            });
+            // const tree = this.buildTree(allFiles);
+            // return tree;
+            return allFiles;
+        } catch (error) {
+            console.log(error.message, 'error');
+            return returnError(true, error.message);
+        }
+    }
+
     async buildTree(files) {
         const tree = [];
 
