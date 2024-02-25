@@ -51,7 +51,7 @@ export class FileManagerController {
 	}
 
 
-	@Get('media/:rocketShipId')
+	@Get(':rocketShipId')
 	async mediaFiles(@Param('rocketShipId') rocketShipId: string) {
 		try {
 			if (!rocketShipId) {
