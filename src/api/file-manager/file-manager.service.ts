@@ -139,6 +139,7 @@ export class FileManagerService {
         // if (parentFolder) {
         //     folderKey = parentFolder + '/' + folderKey;
         // }
+        console.log('folderKey',)
         const params: AWS.S3.PutObjectRequest = {
             Bucket: this.bucketName,
             Key: folderKey,
