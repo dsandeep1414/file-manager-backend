@@ -289,7 +289,7 @@ export class FileManagerController {
 		}
 	}
 
-	@Post('get-rocketships')
+	@Post('rocketships')
 	async getRocketships(@Param() data: any) {
 		try {
 			const response = await this.fileManagerService.getRocketships();          
