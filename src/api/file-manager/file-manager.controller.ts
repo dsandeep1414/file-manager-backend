@@ -110,7 +110,7 @@ export class FileManagerController {
 		try {
 			const { rocketshipId, currentFolderKey } = body;
 			let currentFolder = '';
-			const containsSlash = currentFolderKey.includes("/");
+			const containsSlash = currentFolderKey.endsWith("/");
 			if(!containsSlash){
 				currentFolder = currentFolderKey +'/';
 			}else{
