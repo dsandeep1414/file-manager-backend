@@ -306,6 +306,7 @@ export class FileManagerService {
         try {
             const baseUrl: string = 'https://admin.flyrocketship.com/rocketships';
             const response = await axios.get(baseUrl);
+            console.log("response",response);
             return response.data.data;
         } catch (err) {
             return returnError(true, err.message);

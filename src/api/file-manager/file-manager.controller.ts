@@ -65,11 +65,11 @@ export class FileManagerController {
 		}
 	}
 
-	@Post(':rocketShipId')
-	async searchMedia(
-		@Param('rocketShipId') rocketShipId: string,
-		@Body() body: string
-	) {
+	// @Post(':rocketShipId')
+	// async searchMedia(
+	// 	@Param('rocketShipId') rocketShipId: string,
+	// 	@Body() body: string
+	// ) {
 		// const { label, } = 
 		// try {
 		// 	if (!rocketShipId) {
@@ -81,7 +81,7 @@ export class FileManagerController {
 		// } catch (error) {
 		// 	return errorResponse('Failed to list files', 400);
 		// }
-	}
+	// }
 
 	@Get('file-managers/:id')
 	async fileChild(@Param('id') id: string) {
@@ -313,11 +313,10 @@ export class FileManagerController {
 		}
 	}
 
-	@Post('rocketships')
+	@Get('rocketships')   
 	async getRocketships(@Param() data: any) {
 		try {
-			const response = await this.fileManagerService.getRocketships();          
-
+			const response = await this.fileManagerService.getRocketships();     
 			return successResponse('Rocketships retrieved successfully!', response);
 		} catch (error) {
 			return errorResponse('Failed to retrieved!', 400);
