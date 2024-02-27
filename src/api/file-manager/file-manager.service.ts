@@ -136,10 +136,12 @@ export class FileManagerService {
         parentFolder?: string,
     ): Promise<{ key: string; putObjectOutput: AWS.S3.PutObjectOutput }> {
         let folderKey = parentFolder;
-        // if (parentFolder) {
-        //     folderKey = parentFolder + '/' + folderKey;
-        // }
-        console.log('folderKey',)
+        const containsSlash = folderKey.includes("/");
+        if(!containsSlash){
+            folderKey = parentFolder +'/'+  folderName + '/';
+        }else{
+            folderKey = parentFolder + folderName  + '/';
+        }
         const params: AWS.S3.PutObjectRequest = {
             Bucket: this.bucketName,
             Key: folderKey,
