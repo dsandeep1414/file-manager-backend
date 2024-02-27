@@ -114,7 +114,7 @@ export class FileManagerController {
 			if(!containsSlash){
 				currentFolder = currentFolderKey +'/';
 			}else{
-				currentFolder = currentFolderKey+'/';
+				currentFolder = currentFolderKey;
 			}
 			// if (currentFolderKey != '.') {
 			// 	currentFolder = rocketshipId + '/' + currentFolderKey + '/';
