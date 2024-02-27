@@ -65,6 +65,24 @@ export class FileManagerController {
 		}
 	}
 
+	@Post(':rocketShipId')
+	async searchMedia(
+		@Param('rocketShipId') rocketShipId: string,
+		@Body() body: string
+	) {
+		const { label, } = 
+		try {
+			if (!rocketShipId) {
+				return errorResponse('rocketShipId not provided', 400);
+			}
+			const fileManagerResponse: any =
+				await this.fileManagerService.getMedia(rocketShipId);
+			return successResponse('file fetched successfully', fileManagerResponse);
+		} catch (error) {
+			return errorResponse('Failed to list files', 400);
+		}
+	}
+
 	@Get('file-managers/:id')
 	async fileChild(@Param('id') id: string) {
 		try {
@@ -92,11 +110,17 @@ export class FileManagerController {
 		try {
 			const { rocketshipId, currentFolderKey } = body;
 			let currentFolder = '';
-			if (currentFolderKey != '.') {
-				currentFolder = rocketshipId + '/' + currentFolderKey + '/';
-			} else {
-				currentFolder = rocketshipId + '/';
+			const containsSlash = currentFolderKey.includes("/");
+			if(!containsSlash){
+				currentFolder = currentFolderKey +'/';
+			}else{
+				currentFolder = currentFolderKey+'/';
 			}
+			// if (currentFolderKey != '.') {
+			// 	currentFolder = rocketshipId + '/' + currentFolderKey + '/';
+			// } else {
+			// 	currentFolder = rocketshipId + '/';
+			// }
 			if (!files || files.length === 0) {
 				return errorResponse('No files uploaded', 400);
 			}
