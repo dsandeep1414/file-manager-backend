@@ -73,7 +73,7 @@ export class FileManagerController {
 				return errorResponse('rocketShipId not provided', 400);
 			}
 			const fileManagerResponse: any =
-				await this.fileManagerService.getMedia(rocketShipId); 
+				await this.fileManagerService.searchMedia(rocketShipId, label, channel); 
 			return successResponse('file fetched successfully', fileManagerResponse);
 		} catch (error) {
 			return errorResponse('Failed to list files', 400);

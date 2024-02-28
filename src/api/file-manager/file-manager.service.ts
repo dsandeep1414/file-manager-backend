@@ -29,7 +29,7 @@ export class FileManagerService {
             const allFiles = await this.fileRepo.findAll({
                 raw: true,
                 order: [['name', 'ASC']],
-                where: {  parentId: id },
+                where: { parentId: id },
             });
             // const tree = this.buildTree(allFiles);
             // return tree;
@@ -39,14 +39,13 @@ export class FileManagerService {
             return returnError(true, error.message);
         }
     }
-
 
     async getMedia(id: string) {
         try {
             const allFiles = await this.fileRepo.findAll({
                 raw: true,
                 order: [['name', 'ASC']],
-                where: {  rocketShipId: id },
+                where: { rocketShipId: id },
             });
             // const tree = this.buildTree(allFiles);
             // return tree;
@@ -57,19 +56,78 @@ export class FileManagerService {
         }
     }
 
+    async searchMedia(rocketShipId: string, label: string, channel: string) {
+        try {
+            const whereClause: any = { label: label };
+            if (channel !== undefined) {
+                whereClause.Channels = channel;
+            }
+            const allFiles = await this.fileRepo.findAll({
+                raw: true,
+                order: [['name', 'ASC']],
+                where: whereClause
+            });
+            if (allFiles.length === 0) {
+                return { error: false, message: "No files found", data: [] };
+            }
+            const matchingFilesAndAncestors = await Promise.all(allFiles.map(async (file) => {
+                const ancestors = await this.findAncestorsWithRocketShipId(file.parentId, rocketShipId);
+                return [file, ...ancestors];
+            }));
+            const tree = await this.buildSearchTree(matchingFilesAndAncestors.flat(), []);
+            return { error: false, message: "Files fetched successfully", data: tree };
+        } catch (error) {
+            console.log(error.message, 'error');
+            return { error: true, message: error.message, status: 500, data: null };
+        }
+    }
+
+    async findAncestorsWithRocketShipId(parentId: string, targetRocketShipId: string): Promise<any[]> {
+        const ancestors = [];
+        let currentId = parentId;
+        while (currentId) {
+            const parentNode = await this.fileRepo.findOne({ where: { id: currentId } });
+            if (parentNode && parentNode.rocketShipId === targetRocketShipId) {
+                ancestors.push(parentNode);
+            }
+            currentId = parentNode?.parentId;
+        }
+        return ancestors;
+    }
+
+    async buildSearchTree(files: any[], matchingFiles: any[]) {
+        const tree = [];
+        const nodeMap: { [key: string]: any } = {};  
+        [...files, ...matchingFiles].forEach((file) => {
+            const node = { ...file, children: [] };
+            nodeMap[file.id] = node;
+        });
+        Object.values(nodeMap).forEach((node) => {
+            const parentId = node.parentId;
+            if (parentId) {
+                const parentNode = nodeMap[parentId];
+                if (parentNode) {
+                    parentNode.children.push(node['dataValues']);
+                } else {
+                }
+            } else {
+                if(node['dataValues'] == undefined){
+                    tree.push(node);
+                }else{
+                    tree.push(node['dataValues']);
+                }
+            }
+        });
+        return tree;
+    }
+
     async buildTree(files) {
         const tree = [];
-
-        // Map to store references to nodes by their ID
         const nodeMap = {};
-
-        // Create a node for each file and store it in the node map
         files.forEach((file) => {
             const node = { ...file, children: [] };
             nodeMap[file.id] = node;
         });
-
-        // Connect child nodes to their parent nodes
         files.forEach((file) => {
             const parentId = file.parentId;
             if (parentId) {
@@ -77,16 +135,14 @@ export class FileManagerService {
                 if (parentNode) {
                     parentNode.children.push(nodeMap[file.id]);
                 } else {
-                    // Handle orphaned child nodes if needed
                 }
             } else {
-                // If a file has no parent, it's a root node
                 tree.push(nodeMap[file.id]);
             }
         });
-
         return tree;
     }
+
 
     async favoriteFiles(rocketShipId: string) {
         try {
@@ -137,10 +193,10 @@ export class FileManagerService {
     ): Promise<{ key: string; putObjectOutput: AWS.S3.PutObjectOutput }> {
         let folderKey = parentFolder;
         const containsSlash = folderKey.includes("/");
-        if(!containsSlash){
-            folderKey = parentFolder +'/'+  folderName + '/';
-        }else{
-            folderKey = parentFolder + folderName  + '/';
+        if (!containsSlash) {
+            folderKey = parentFolder + '/' + folderName + '/';
+        } else {
+            folderKey = parentFolder + folderName + '/';
         }
         const params: AWS.S3.PutObjectRequest = {
             Bucket: this.bucketName,
@@ -295,7 +351,7 @@ export class FileManagerService {
     async authenticate(token: string) {
         try {
             const baseUrl: string = 'https://admin.flyrocketship.com/authenticate';
-            const response = await axios.post(baseUrl, {'token':token});
+            const response = await axios.post(baseUrl, { 'token': token });
             return response.data.data;
         } catch (err) {
             return returnError(true, err.message);
@@ -306,7 +362,7 @@ export class FileManagerService {
         try {
             const baseUrl: string = 'https://admin.flyrocketship.com/rocketships';
             const response = await axios.get(baseUrl);
-            console.log("response",response);
+            console.log("response", response);
             return response.data.data;
         } catch (err) {
             return returnError(true, err.message);
@@ -319,7 +375,7 @@ export class FileManagerService {
             Bucket: this.bucketName,
             Key: key,
         };
-        console.log("params=========",params);
+        console.log("params=========", params);
         return await this.s3.getObject(params).promise();
     }
 
@@ -339,16 +395,16 @@ export class FileManagerService {
             const fileURL = this.s3.getSignedUrl('getObject', {
                 Bucket: this.bucketName,
                 Key: key,
-                Expires: 3600,  
+                Expires: 3600,
             });
             return fileURL;
         } catch (error) {
             console.error('Error retrieving file or setting permissions:', error);
-            throw error;  
+            throw error;
         }
     }
 
-    async downloadFile(id:any) {
+    async downloadFile(id: any) {
         try {
             let file = await this.fileRepo.findOne({
                 where: {
