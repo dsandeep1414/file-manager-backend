@@ -65,7 +65,7 @@ export class FileManagerController {
 		}
 	}
 
-	@Post(':rocketShipId')
+	@Post('/get/:rocketShipId')
 	async searchMedia(@Body() body:any ,  @Param('rocketShipId') rocketShipId: string) {
 		try {
 			const { label, channel } = body;
