@@ -7,7 +7,7 @@ import { returnError } from 'src/common/succes-handler/response-handler';
 import { PutObjectOutput } from 'aws-sdk/clients/s3';
 import { HttpService } from '@nestjs/axios';
 import axios from 'axios';
-import { Op } from 'sequelize';
+import { Op, Order } from 'sequelize';
 
 @Injectable()
 export class FileManagerService {
@@ -57,38 +57,39 @@ export class FileManagerService {
         }
     }
 
-    
-async searchMedia(rocketShipId: string, label: string, channel: string, search:string) {
-    try {
-        const whereClause: any = { };
-        if (search !== undefined) {
-            whereClause.name = { [Op.like]: '%' + search + '%' }; // Using Op.like for like query on the name field
+    async searchMedia(rocketShipId: string, label: string, channel: string, search:string,sort:string) {
+        try {
+            const whereClause: any = {};
+            if (search !== undefined) {
+                whereClause.name = { [Op.like]: '%' + search + '%' }; 
+            }
+            if (label !== undefined && label !== '') {
+                whereClause.label = label;
+            }
+            if (channel !== undefined && channel !== '') {
+                whereClause.Channels = channel;
+            }
+            const order: Order = sort && sort.toLowerCase() === 'asc' ? [['createdAt', 'ASC']] : [['createdAt', 'DESC']];
+            const allFiles = await this.fileRepo.findAll({
+                raw: true,
+                order: order,
+                where: whereClause
+            });
+            if (allFiles.length === 0) {
+                return { error: false, message: "No files found", data: [] };
+            }
+            const matchingFilesAndAncestors = await Promise.all(allFiles.map(async (file) => {
+                const ancestors = await this.findAncestorsWithRocketShipId(file.parentId, rocketShipId);
+                return [file, ...ancestors];
+            }));
+            const tree = await this.buildSearchTree(matchingFilesAndAncestors.flat(), []);
+            return { error: false, message: "Files fetched successfully", data: tree };
+        } catch (error) {
+            console.log(error.message, 'error');
+            return { error: true, message: error.message, status: 500, data: null };
         }
-        if (label !== undefined && label !== '') {
-            whereClause.label = label;
-        }
-        if (channel !== undefined && channel !== '') {
-            whereClause.Channels = channel;
-        }
-        const allFiles = await this.fileRepo.findAll({
-            raw: true,
-            order: [['name', 'ASC']],
-            where: whereClause
-        });
-        if (allFiles.length === 0) {
-            return { error: false, message: "No files found", data: [] };
-        }
-        const matchingFilesAndAncestors = await Promise.all(allFiles.map(async (file) => {
-            const ancestors = await this.findAncestorsWithRocketShipId(file.parentId, rocketShipId);
-            return [file, ...ancestors];
-        }));
-        const tree = await this.buildSearchTree(matchingFilesAndAncestors.flat(), []);
-        return { error: false, message: "Files fetched successfully", data: tree };
-    } catch (error) {
-        console.log(error.message, 'error');
-        return { error: true, message: error.message, status: 500, data: null };
     }
-}
+    
 
     async findAncestorsWithRocketShipId(
         parentId: string,
