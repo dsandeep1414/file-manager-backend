@@ -7,6 +7,7 @@ import { returnError } from 'src/common/succes-handler/response-handler';
 import { PutObjectOutput } from 'aws-sdk/clients/s3';
 import { HttpService } from '@nestjs/axios';
 import axios from 'axios';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class FileManagerService {
@@ -56,37 +57,49 @@ export class FileManagerService {
         }
     }
 
-    async searchMedia(rocketShipId: string, label: string, channel: string) {
-        try {
-            const whereClause: any = { label: label };
-            if (channel !== undefined) {
-                whereClause.Channels = channel;
-            }
-            const allFiles = await this.fileRepo.findAll({
-                raw: true,
-                order: [['name', 'ASC']],
-                where: whereClause
-            });
-            if (allFiles.length === 0) {
-                return { error: false, message: "No files found", data: [] };
-            }
-            const matchingFilesAndAncestors = await Promise.all(allFiles.map(async (file) => {
-                const ancestors = await this.findAncestorsWithRocketShipId(file.parentId, rocketShipId);
-                return [file, ...ancestors];
-            }));
-            const tree = await this.buildSearchTree(matchingFilesAndAncestors.flat(), []);
-            return { error: false, message: "Files fetched successfully", data: tree };
-        } catch (error) {
-            console.log(error.message, 'error');
-            return { error: true, message: error.message, status: 500, data: null };
+    
+async searchMedia(rocketShipId: string, label: string, channel: string, search:string) {
+    try {
+        const whereClause: any = { };
+        if (search !== undefined) {
+            whereClause.name = { [Op.like]: '%' + search + '%' }; // Using Op.like for like query on the name field
         }
+        if (label !== undefined && label !== '') {
+            whereClause.label = label;
+        }
+        if (channel !== undefined && channel !== '') {
+            whereClause.Channels = channel;
+        }
+        const allFiles = await this.fileRepo.findAll({
+            raw: true,
+            order: [['name', 'ASC']],
+            where: whereClause
+        });
+        if (allFiles.length === 0) {
+            return { error: false, message: "No files found", data: [] };
+        }
+        const matchingFilesAndAncestors = await Promise.all(allFiles.map(async (file) => {
+            const ancestors = await this.findAncestorsWithRocketShipId(file.parentId, rocketShipId);
+            return [file, ...ancestors];
+        }));
+        const tree = await this.buildSearchTree(matchingFilesAndAncestors.flat(), []);
+        return { error: false, message: "Files fetched successfully", data: tree };
+    } catch (error) {
+        console.log(error.message, 'error');
+        return { error: true, message: error.message, status: 500, data: null };
     }
+}
 
-    async findAncestorsWithRocketShipId(parentId: string, targetRocketShipId: string): Promise<any[]> {
+    async findAncestorsWithRocketShipId(
+        parentId: string,
+        targetRocketShipId: string,
+    ): Promise<any[]> {
         const ancestors = [];
         let currentId = parentId;
         while (currentId) {
-            const parentNode = await this.fileRepo.findOne({ where: { id: currentId } });
+            const parentNode = await this.fileRepo.findOne({
+                where: { id: currentId },
+            });
             if (parentNode && parentNode.rocketShipId === targetRocketShipId) {
                 ancestors.push(parentNode);
             }
@@ -97,7 +110,7 @@ export class FileManagerService {
 
     async buildSearchTree(files: any[], matchingFiles: any[]) {
         const tree = [];
-        const nodeMap: { [key: string]: any } = {};  
+        const nodeMap: { [key: string]: any } = {};
         [...files, ...matchingFiles].forEach((file) => {
             const node = { ...file, children: [] };
             nodeMap[file.id] = node;
@@ -111,9 +124,9 @@ export class FileManagerService {
                 } else {
                 }
             } else {
-                if(node['dataValues'] == undefined){
+                if (node['dataValues'] == undefined) {
                     tree.push(node);
-                }else{
+                } else {
                     tree.push(node['dataValues']);
                 }
             }
@@ -143,7 +156,6 @@ export class FileManagerService {
         return tree;
     }
 
-
     async favoriteFiles(rocketShipId: string) {
         try {
             const allFiles = await this.fileRepo.findAll({
@@ -159,24 +171,24 @@ export class FileManagerService {
     }
 
     /* async fileManagers() {
-          try {
-              const response: any = await this.fileRepo.findAll({
-                  attributes: ["*"],
-                  order: [
-                      ["name", "ASC"],
-                  ],
-              });
-              const count = await this.fileRepo.count();
-              const data = {
-                  rows: response,
-                  count,
-              };
-              return data;
-          } catch (error) {
-              console.log(error.message, "error");
-              return returnError(true, error.message);
-          }
-      }*/
+            try {
+                const response: any = await this.fileRepo.findAll({
+                    attributes: ["*"],
+                    order: [
+                        ["name", "ASC"],
+                    ],
+                });
+                const count = await this.fileRepo.count();
+                const data = {
+                    rows: response,
+                    count,
+                };
+                return data;
+            } catch (error) {
+                console.log(error.message, "error");
+                return returnError(true, error.message);
+            }
+        }*/
 
     async uploadFile(file: any, key: string): Promise<ManagedUpload.SendData> {
         const params: AWS.S3.PutObjectRequest = {
@@ -192,7 +204,7 @@ export class FileManagerService {
         parentFolder?: string,
     ): Promise<{ key: string; putObjectOutput: AWS.S3.PutObjectOutput }> {
         let folderKey = parentFolder;
-        const containsSlash = folderKey.includes("/");
+        const containsSlash = folderKey.includes('/');
         if (!containsSlash) {
             folderKey = parentFolder + '/' + folderName + '/';
         } else {
@@ -223,13 +235,13 @@ export class FileManagerService {
     }
 
     /* async createFolder(folderName: string): Promise<PutObjectOutput> {
-          const params: AWS.S3.PutObjectRequest = {
-              Bucket: this.bucketName,
-              Key: 'd41d8cd98f00b204e9800998ecf8427e'+folderName + '/',
-              Body: '',
-          }; 
-          return await this.s3.putObject(params).promise();
-      }*/
+            const params: AWS.S3.PutObjectRequest = {
+                Bucket: this.bucketName,
+                Key: 'd41d8cd98f00b204e9800998ecf8427e'+folderName + '/',
+                Body: '',
+            }; 
+            return await this.s3.putObject(params).promise();
+        }*/
 
     async saveData(
         name: string,
@@ -351,7 +363,7 @@ export class FileManagerService {
     async authenticate(token: string) {
         try {
             const baseUrl: string = 'https://admin.flyrocketship.com/authenticate';
-            const response = await axios.post(baseUrl, { 'token': token });
+            const response = await axios.post(baseUrl, { token: token });
             return response.data.data;
         } catch (err) {
             return returnError(true, err.message);
@@ -368,16 +380,14 @@ export class FileManagerService {
         }
     }
 
-
     async getFile(key: string): Promise<AWS.S3.GetObjectOutput> {
         const params: AWS.S3.GetObjectRequest = {
             Bucket: this.bucketName,
             Key: key,
         };
-        console.log("params=========", params);
+        console.log('params=========', params);
         return await this.s3.getObject(params).promise();
     }
-
 
     async getFileURLAndSetReadPermission(key: string): Promise<string> {
         const params: AWS.S3.GetObjectRequest = {
@@ -386,11 +396,13 @@ export class FileManagerService {
         };
         try {
             const getObjectOutput = await this.s3.getObject(params).promise();
-            await this.s3.putObjectAcl({
-                Bucket: this.bucketName,
-                Key: key,
-                ACL: 'public-read',
-            }).promise();
+            await this.s3
+                .putObjectAcl({
+                    Bucket: this.bucketName,
+                    Key: key,
+                    ACL: 'public-read',
+                })
+                .promise();
             const fileURL = this.s3.getSignedUrl('getObject', {
                 Bucket: this.bucketName,
                 Key: key,
@@ -407,10 +419,12 @@ export class FileManagerService {
         try {
             let file = await this.fileRepo.findOne({
                 where: {
-                    id: id
+                    id: id,
                 },
             });
-            const mediaData = await this.getFileURLAndSetReadPermission(file.bucketKey)
+            const mediaData = await this.getFileURLAndSetReadPermission(
+                file.bucketKey,
+            );
             return mediaData;
         } catch (err) {
             return returnError(true, err.message);

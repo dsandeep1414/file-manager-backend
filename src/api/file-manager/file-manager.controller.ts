@@ -68,12 +68,12 @@ export class FileManagerController {
 	@Post('/get/:rocketShipId')
 	async searchMedia(@Body() body:any ,  @Param('rocketShipId') rocketShipId: string) {
 		try {
-			const { label, channel } = body;
+			const { label, channel, search } = body;
 			if (!rocketShipId) {
 				return errorResponse('rocketShipId not provided', 400);
 			}
 			const fileManagerResponse: any =
-				await this.fileManagerService.searchMedia(rocketShipId, label, channel); 
+				await this.fileManagerService.searchMedia(rocketShipId, label, channel,search); 
 			return successResponse('file fetched successfully', fileManagerResponse);
 		} catch (error) {
 			return errorResponse('Failed to list files', 400);
