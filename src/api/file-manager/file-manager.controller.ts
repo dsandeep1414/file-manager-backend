@@ -16,6 +16,7 @@ import {
 	errorResponse,
 	successResponse,
 } from 'src/common/succes-handler/response-handler';
+import { log } from 'console';
 // import { CreateFileManagerDto } from './dto/create-file-manager.dto';
 // import { UpdateFileManagerDto } from './dto/update-file-manager.dto';
 
@@ -65,38 +66,21 @@ export class FileManagerController {
 		}
 	}
 
-	@Post('/get/:rocketShipId') 
-	async searchMedia(@Body() body:any ,  @Param('rocketShipId') rocketShipId: string) {
+	@Post('/get/:rocketShipId')
+			async searchMedia(@Body() body: any, @Param('rocketShipId') rocketShipId: string) {
 		try {
-			const { label, channel, search,sort } = body;
+			const { label, channel, search, sort } = body;
 			if (!rocketShipId) {
 				return errorResponse('rocketShipId not provided', 400);
 			}
 			const fileManagerResponse: any =
-				await this.fileManagerService.searchMedia(rocketShipId, label, channel,search,sort); 
+				await this.fileManagerService.searchMedia(rocketShipId, label, channel, search, sort);
 			return successResponse('file fetched successfully', fileManagerResponse);
 		} catch (error) {
 			return errorResponse('Failed to list files', 400);
 		}
 	}
 
-	// @Post(':rocketShipId')
-	// async searchMedia(
-	// 	@Param('rocketShipId') rocketShipId: string,
-	// 	@Body() body: string
-	// ) {
-		// const { label, } = 
-		// try {
-		// 	if (!rocketShipId) {
-		// 		return errorResponse('rocketShipId not provided', 400);
-		// 	}
-		// 	const fileManagerResponse: any =
-		// 		await this.fileManagerService.getMedia(rocketShipId);
-		// 	return successResponse('file fetched successfully', fileManagerResponse);
-		// } catch (error) {
-		// 	return errorResponse('Failed to list files', 400);
-		// }
-	// }
 
 	@Get('file-managers/:id')
 	async fileChild(@Param('id') id: string) {
@@ -122,27 +106,24 @@ export class FileManagerController {
 	@Post('upload')
 	@UseInterceptors(FilesInterceptor('files'))
 	async uploadFiles(@UploadedFiles() files: any, @Body() body: any) {
+		
 		try {
 			const { rocketshipId, currentFolderKey } = body;
 			let currentFolder = '';
 			const containsSlash = currentFolderKey.endsWith("/");
-			if(!containsSlash){
-				currentFolder = currentFolderKey +'/';
-			}else{
+			if (!containsSlash) {
+				currentFolder = currentFolderKey + '/';
+			} else {
 				currentFolder = currentFolderKey;
 			}
-			// if (currentFolderKey != '.') {
-			// 	currentFolder = rocketshipId + '/' + currentFolderKey + '/';
-			// } else {
-			// 	currentFolder = rocketshipId + '/';
-			// }
+
 			if (!files || files.length === 0) {
 				return errorResponse('No files uploaded', 400);
 			}
-			console.log('Additional data:', body);
+
 			const uploadResults = await Promise.all(
 				files.map(async (file) => {
-					const key = `${currentFolder}${file.originalname}`;
+					const key = `${currentFolder}/${file.originalname}`;
 					console.log('key', key);
 					const result = await this.fileManagerService.uploadFile(file, key);
 					return result;
@@ -155,20 +136,30 @@ export class FileManagerController {
 		}
 	}
 
-	/* @Post('upload')
-		@UseInterceptors(FileInterceptor('file'))
-		async uploadFile(@UploadedFile() file: any) {
-		  try {
-			if (!file) {
-			  return errorResponse('No file uploaded', 400);
+
+	@Post('upload-icon')
+	@UseInterceptors(FilesInterceptor('file'))
+	async uploadIcon(@UploadedFiles() file: any, @Body() body: any) {
+		try {
+			if (Array.isArray(file)) {
+				file = file[0];
 			}
-			const key = `${file.originalname}`;
+
+			if (!file) {
+				return errorResponse('No file icon', 400);
+			}
+			
+			const key = `icons/${file.originalname}`;
 			const result = await this.fileManagerService.uploadFile(file, key);
-			return successResponse('file upload successfully', result);
-		  } catch (error) {
+			
+			return successResponse('File uploaded successfully', { url: result.Location });
+		} catch (error) {
+			console.error('Upload error:', error);
 			return errorResponse('File upload failed', 400);
-		  }
-		}*/
+		}
+	}
+
+	
 
 	@Post('delete')
 	async deleteFile(@Body() body: any) {
@@ -241,6 +232,7 @@ export class FileManagerController {
 				rocketShipId,
 				type,
 				fileType,
+				icon,
 				parentId,
 				label,
 				channel,
@@ -249,12 +241,14 @@ export class FileManagerController {
 			} = data;
 			const checkMediaExist: any =
 				await this.fileManagerService.checkMediaExist(rocketShipId);
+				
 			let parentKey: string;
 			if (!checkMediaExist?.count) {
 				const dataResponse = await this.fileManagerService.saveData(
 					name,
 					bucketKey,
 					rocketShipId,
+					icon,
 					'folder',
 					'folder',
 					null,
@@ -272,6 +266,7 @@ export class FileManagerController {
 				name,
 				bucketKey,
 				rocketShipId,
+				icon,
 				type,
 				fileType,
 				parentKey,
@@ -289,8 +284,8 @@ export class FileManagerController {
 	@Post('rename')
 	async renameFolder(@Body() data: any) {
 		try {
-			const { id, name } = data;
-			const dataResponse = await this.fileManagerService.rename(id, name);
+			const { id, name, icon } = data;
+			const dataResponse = await this.fileManagerService.rename(id, name, icon);
 			return successResponse(
 				'Folder or File renamed successfully',
 				dataResponse,
@@ -328,10 +323,10 @@ export class FileManagerController {
 		}
 	}
 
-	@Get('rocketships/list')   
+	@Get('rocketships/list')
 	async getRocketships(@Param() data: any) {
 		try {
-			const response = await this.fileManagerService.getRocketships();     
+			const response = await this.fileManagerService.getRocketships();
 			return successResponse('Rocketships retrieved successfully!', response);
 		} catch (error) {
 			return errorResponse('Failed to retrieved!', 400);
@@ -346,7 +341,7 @@ export class FileManagerController {
 			return successResponse('Rocketships retrieved successfully!', {
 				file: response,
 			});
-		} catch (error) { 
+		} catch (error) {
 			return errorResponse('Failed to retrieved!', 400);
 		}
 	}

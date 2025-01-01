@@ -102,6 +102,12 @@ export class fileManager extends Model {
 	})
 	isFavorite!: isFavorite;
 
+	@Column({
+		type: DataType.STRING,
+		defaultValue: "false",
+		allowNull: true,
+	})
+	icon!: string;
 
 	@Default(DataType.NOW)
 	@Column({

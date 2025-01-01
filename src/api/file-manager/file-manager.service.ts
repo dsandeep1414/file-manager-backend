@@ -16,12 +16,14 @@ export class FileManagerService {
     private readonly http: HttpService;
 
     constructor(@Inject('FILEMANAGER') private fileRepo: typeof fileManager) {
-        this.bucketName = 'rocketship-media';
+        this.bucketName = process.env.BUCKET_NAME;
         this.s3 = new AWS.S3({
-            accessKeyId: process.env.DIGITALOCEAN_ACCESS_KEY,
-            secretAccessKey: process.env.DIGITALOCEAN_ACCESS_SECRET_KEY,
+            accessKeyId: process.env.AWS_ACCESS_KEY,
+            secretAccessKey: process.env.AWS_ACCESS_SECRET_KEY,
             endpoint: process.env.BUCKET_URL,
             s3ForcePathStyle: true,
+            signatureVersion: 'v4',
+            region: process.env.REGION
         });
     }
 
@@ -48,6 +50,8 @@ export class FileManagerService {
                 order: [['name', 'ASC']],
                 where: { rocketShipId: id },
             });
+            console.log({allFiles});
+            
             // const tree = this.buildTree(allFiles);
             // return tree;
             return allFiles;
@@ -59,7 +63,7 @@ export class FileManagerService {
 
     async searchMedia(rocketShipId: string, label: string, channel: string, search:string,sort:string) {
         try {
-            const whereClause: any = {};
+            const whereClause: any = { rocketShipId };
             if (search !== undefined) {
                 whereClause.name = { [Op.like]: '%' + search + '%' }; 
             }
@@ -78,12 +82,14 @@ export class FileManagerService {
             if (allFiles.length === 0) {
                 return { error: false, message: "No files found", data: [] };
             }
-            const matchingFilesAndAncestors = await Promise.all(allFiles.map(async (file) => {
-                const ancestors = await this.findAncestorsWithRocketShipId(file.parentId, rocketShipId);
-                return [file, ...ancestors];
-            }));
-            const tree = await this.buildSearchTree(matchingFilesAndAncestors.flat(), []);
-            return { error: false, message: "Files fetched successfully", data: tree };
+
+            // const matchingFilesAndAncestors = await Promise.all(allFiles.map(async (file) => {
+            //     const ancestors = await this.findAncestorsWithRocketShipId(file.parentId, rocketShipId);
+            //     return [file, ...ancestors];
+            // }));
+            // const tree = await this.buildSearchTree(matchingFilesAndAncestors.flat(), []);
+            
+            return { error: false, message: "Files fetched successfully", data: allFiles };
         } catch (error) {
             console.log(error.message, 'error');
             return { error: true, message: error.message, status: 500, data: null };
@@ -192,12 +198,20 @@ export class FileManagerService {
         }*/
 
     async uploadFile(file: any, key: string): Promise<ManagedUpload.SendData> {
-        const params: AWS.S3.PutObjectRequest = {
+        const params = {
             Bucket: this.bucketName,
             Key: key,
-            Body: Readable.from(file.buffer),
+            Body: file.buffer,
+            ContentType: file.mimetype,
+            ACL: 'public-read'
         };
-        return await this.s3.upload(params).promise();
+
+        try {
+            return await this.s3.upload(params).promise();
+        } catch (error) {
+            console.error('Error uploading file:', error);
+            throw error;
+        }
     }
 
     async createFolder(
@@ -248,6 +262,7 @@ export class FileManagerService {
         name: string,
         bucketKey: string,
         rocketShipId: string,
+        icon: string,
         type: string,
         fileType: string,
         parentId: string,
@@ -260,6 +275,7 @@ export class FileManagerService {
             name,
             bucketKey,
             rocketShipId,
+            icon,
             type,
             fileType,
             parentId,
@@ -278,12 +294,15 @@ export class FileManagerService {
         }
     }
 
-    async rename(id: string, name: string) {
+    async rename(id: string, name: string, icon?: string) {
         try {
+            const updateData = {
+                name: name,
+                ...(icon ? { icon } : {})
+            };
+
             const response = await this.fileRepo.update(
-                {
-                    name: name,
-                },
+                updateData,
                 {
                     where: {
                         id: id,
