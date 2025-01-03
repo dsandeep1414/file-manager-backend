@@ -71,7 +71,7 @@ export class FileManagerService {
                 whereClause.label = label;
             }
             if (channel !== undefined && channel !== '') {
-                whereClause.Channels = channel;
+                whereClause.channel = channel;
             }
             const order: Order = sort && sort.toLowerCase() === 'asc' ? [['createdAt', 'ASC']] : [['createdAt', 'DESC']];
             const allFiles = await this.fileRepo.findAll({
@@ -285,7 +285,9 @@ export class FileManagerService {
             isFavorite: isFavorite,
         };
         try {
+
             console.log('data*****************', data);
+
             const response: any = await this.fileRepo.create(data);
             return response?.data;
         } catch (err) {

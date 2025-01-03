@@ -252,8 +252,8 @@ export class FileManagerController {
 					'folder',
 					'folder',
 					null,
-					null,
-					null,
+					label,
+					channel,
 					'false',
 					'false',
 				);
@@ -262,6 +262,7 @@ export class FileManagerController {
 			} else {
 				parentKey = parentId;
 			}
+			
 			const dataResponse = await this.fileManagerService.saveData(
 				name,
 				bucketKey,

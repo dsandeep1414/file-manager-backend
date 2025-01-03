@@ -71,7 +71,7 @@ export class fileManager extends Model {
 		defaultValue: "DEFAULT",
 		allowNull: false,
 	})
-	Channels!: string;
+	channel!: string;
 
 	@Column({
 		type: DataType.ENUM,
