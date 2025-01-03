@@ -50,8 +50,6 @@ export class FileManagerService {
                 order: [['name', 'ASC']],
                 where: { rocketShipId: id },
             });
-            console.log({allFiles});
-            
             // const tree = this.buildTree(allFiles);
             // return tree;
             return allFiles;
@@ -67,10 +65,10 @@ export class FileManagerService {
             if (search !== undefined) {
                 whereClause.name = { [Op.like]: '%' + search + '%' }; 
             }
-            if (label !== undefined && label !== '') {
+            if (label !== undefined && label !== '' && label != 'DEFAULT') {
                 whereClause.label = label;
             }
-            if (channel !== undefined && channel !== '') {
+            if (channel !== undefined && channel !== '' && channel != 'DEFAULT') {
                 whereClause.channel = channel;
             }
             const order: Order = sort && sort.toLowerCase() === 'asc' ? [['createdAt', 'ASC']] : [['createdAt', 'DESC']];
@@ -271,7 +269,8 @@ export class FileManagerService {
         isDeleted: string,
         isFavorite: string,
     ) {
-        const data = {
+
+        let data = {
             name,
             bucketKey,
             rocketShipId,
@@ -280,14 +279,14 @@ export class FileManagerService {
             fileType,
             parentId,
             label,
-            channel,
             isDeleted: isDeleted,
             isFavorite: isFavorite,
+            channel: (channel)?? "DEFAULT"
         };
+
         try {
 
             console.log('data*****************', data);
-
             const response: any = await this.fileRepo.create(data);
             return response?.data;
         } catch (err) {

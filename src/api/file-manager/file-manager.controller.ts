@@ -67,7 +67,7 @@ export class FileManagerController {
 	}
 
 	@Post('/get/:rocketShipId')
-			async searchMedia(@Body() body: any, @Param('rocketShipId') rocketShipId: string) {
+	async searchMedia(@Body() body: any, @Param('rocketShipId') rocketShipId: string) {
 		try {
 			const { label, channel, search, sort } = body;
 			if (!rocketShipId) {
@@ -106,7 +106,7 @@ export class FileManagerController {
 	@Post('upload')
 	@UseInterceptors(FilesInterceptor('files'))
 	async uploadFiles(@UploadedFiles() files: any, @Body() body: any) {
-		
+
 		try {
 			const { rocketshipId, currentFolderKey } = body;
 			let currentFolder = '';
@@ -148,10 +148,10 @@ export class FileManagerController {
 			if (!file) {
 				return errorResponse('No file icon', 400);
 			}
-			
+
 			const key = `icons/${file.originalname}`;
 			const result = await this.fileManagerService.uploadFile(file, key);
-			
+
 			return successResponse('File uploaded successfully', { url: result.Location });
 		} catch (error) {
 			console.error('Upload error:', error);
@@ -159,7 +159,7 @@ export class FileManagerController {
 		}
 	}
 
-	
+
 
 	@Post('delete')
 	async deleteFile(@Body() body: any) {
@@ -239,9 +239,10 @@ export class FileManagerController {
 				isDeleted,
 				isFavorite,
 			} = data;
+
 			const checkMediaExist: any =
 				await this.fileManagerService.checkMediaExist(rocketShipId);
-				
+
 			let parentKey: string;
 			if (!checkMediaExist?.count) {
 				const dataResponse = await this.fileManagerService.saveData(
@@ -262,7 +263,7 @@ export class FileManagerController {
 			} else {
 				parentKey = parentId;
 			}
-			
+
 			const dataResponse = await this.fileManagerService.saveData(
 				name,
 				bucketKey,
